@@ -4,6 +4,21 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Feed log</title>
+
+<!-- ==========================================================
+     SETTINGS — this is the only part of the file you edit.
+     Paste your two Supabase values between the quote marks.
+     Leave them empty and the page runs in demo mode.
+     ========================================================== -->
+<script>
+  window.CAT_CONFIG = {
+    catName: "",                  // e.g. "Mia" — shown in the heading
+    people: ["Luisa", "Matt", "Other"],
+    supabaseUrl: "",              // https://xxxxxxxx.supabase.co
+    supabaseAnonKey: ""           // publishable key: sb_publishable_...
+  };
+</script>
+<!-- ===== end of settings — nothing below needs changing ===== -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -260,16 +275,8 @@
 </div>
 
 <script type="module">
-/* =====================================================================
-   CONFIG — fill these two in to go live with Supabase.
-   Leave them empty and the page runs in demo mode with sample data.
-   ===================================================================== */
-const CONFIG = {
-  catName: "",                    // e.g. "Mia" — used in the heading
-  people: ["Luisa", "Matt", "Other"],
-  supabaseUrl: "",                // https://xxxx.supabase.co
-  supabaseAnonKey: ""             // publishable key: sb_publishable_...
-};
+/* Settings live in the SETTINGS block at the very top of this file. */
+const CONFIG = window.CAT_CONFIG;
 
 /* ---------- data layer ---------- */
 const useSupabase = Boolean(CONFIG.supabaseUrl && CONFIG.supabaseAnonKey);
