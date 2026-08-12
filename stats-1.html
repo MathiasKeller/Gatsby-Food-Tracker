@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Feed log — statistics</title>
+
+<!-- ==========================================================
+     SETTINGS — must match the values in index.html.
+     ========================================================== -->
+<script>
+  window.CAT_CONFIG = {
+    catName: "Gatsby",
+    people: ["Luisa", "Matt", "Other"],
+    supabaseUrl: "https://hpacegxcaahnrohkdpmx.supabase.co",
+    supabaseAnonKey: "sb_publishable_kGHwr-bI47o4SA2GDsGENg_DVznzAnp"
+  };
+</script>
+<!-- ===== end of settings — nothing below needs changing ===== -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EFF2EE;
+    --card:#FFFFFF;
+    --ink:#16211E;
+    --muted:#6C7A74;
+    --line:#D8DFD9;
+    --wet:#1F6B5B;
+    --wet-soft:#DCEBE5;
+    --snack:#A9761A;
+    --snack-soft:#F4E8CE;
+    --radius:14px;
+    --shadow:0 1px 2px rgba(22,33,30,.05), 0 8px 24px -16px rgba(22,33,30,.25);
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none !important}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);color:var(--ink);
+    font-family:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+    font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:580px;margin:0 auto;padding:28px 18px 72px}
+  button{font:inherit;color:inherit;cursor:pointer}
+  select{font:inherit;color:inherit}
+  a{color:inherit}
+  :focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:4px}
+
+  .masthead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+  .lang{display:flex;gap:2px;border:1px solid var(--line);border-radius:999px;padding:2px;background:#fff}
+  .lang button{
+    border:none;background:none;border-radius:999px;padding:4px 10px;
+    font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.08em;color:var(--muted)
+  }
+  .lang button[aria-pressed="true"]{background:var(--ink);color:#fff}
+  .eyebrow{
+    font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--muted);margin:0 0 6px
+  }
+  h1{
+    font-family:"Bricolage Grotesque",system-ui,sans-serif;
+    font-weight:800;font-size:34px;line-height:1.02;letter-spacing:-.02em;margin:0 0 18px
+  }
+  .back{
+    display:inline-block;font-size:13.5px;color:var(--muted);text-decoration:none;
+    border-bottom:1px solid var(--line);padding-bottom:1px;margin-bottom:22px
+  }
+  .back:hover{color:var(--ink)}
+
+  /* tiles */
+  .tiles{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px}
+  .tile{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:14px 15px
+  }
+  .tile.wide{grid-column:1/-1}
+  .tile .k{
+    font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:8px
+  }
+  .tile .v{
+    font-family:"Bricolage Grotesque",sans-serif;font-weight:600;font-size:27px;
+    letter-spacing:-.02em;line-height:1
+  }
+  .tile .v small{font-size:14px;font-weight:600;color:var(--muted);margin-left:3px}
+  .tile .sub{font-size:12.5px;color:var(--muted);margin-top:6px}
+
+  h2{
+    font-family:"Bricolage Grotesque",sans-serif;font-weight:600;font-size:19px;
+    margin:30px 0 3px;letter-spacing:-.01em
+  }
+  .lede{font-size:13px;color:var(--muted);margin:0 0 12px}
+  .panel{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:16px
+  }
+  svg{display:block;width:100%;height:auto;overflow:visible}
+  .axis{font-family:"IBM Plex Mono",monospace;font-size:9px;fill:var(--muted)}
+  .gridline{stroke:var(--line);stroke-width:1}
+  .avgline{stroke:var(--ink);stroke-width:1;stroke-dasharray:3 3;opacity:.45}
+
+  .legend{display:flex;gap:14px;margin-top:12px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+  .legend i{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:5px;vertical-align:-1px}
+
+  /* month rows */
+  .mrow{display:grid;grid-template-columns:74px 1fr 62px;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+  .mrow:last-child{border-bottom:none}
+  .mlabel{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted)}
+  .mbar{height:9px;border-radius:3px;background:var(--wet);min-width:2px}
+  .mval{font-family:"IBM Plex Mono",monospace;font-size:12.5px;text-align:right}
+  .mnote{font-size:11px;color:var(--muted)}
+
+  /* person rows */
+  .prow{display:grid;grid-template-columns:64px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+  .prow:last-child{border-bottom:none}
+  .pname{font-weight:500;font-size:14px}
+  .ptrack{display:flex;height:11px;border-radius:3px;overflow:hidden;background:#F1F4F1}
+  .pseg.wet{background:var(--wet)}
+  .pseg.snack{background:var(--snack)}
+  .pval{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--muted);white-space:nowrap}
+
+  .selwrap{position:relative;display:inline-block;margin-bottom:12px}
+  .selwrap select{
+    background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 34px 8px 12px;
+    appearance:none;font-size:13.5px
+  }
+  .selwrap::after{
+    content:"";position:absolute;right:13px;top:50%;width:6px;height:6px;
+    border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);
+    transform:translateY(-70%) rotate(45deg);pointer-events:none
+  }
+  .empty{
+    text-align:center;color:var(--muted);padding:30px 10px;font-size:14px;
+    border:1px dashed var(--line);border-radius:var(--radius)
+  }
+  .foot{font-size:12px;color:var(--muted);margin-top:26px;line-height:1.5}
+  @media (max-width:400px){ h1{font-size:29px} .tile .v{font-size:24px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <p class="eyebrow" id="eyebrow">Feeding statistics</p>
+    <div class="lang" id="lang">
+      <button type="button" data-l="en" aria-pressed="true">EN</button>
+      <button type="button" data-l="de" aria-pressed="false">DE</button>
+    </div>
+  </div>
+  <h1 id="title">Statistics</h1>
+  <a class="back" href="./index.html" id="back">← Back to the feed log</a>
+
+  <div id="content"></div>
+  <p class="foot" id="foot"></p>
+</div>
+
+<script type="module">
+const CONFIG = window.CAT_CONFIG;
+
+/* ---------- languages ---------- */
+const I18N = {
+  en: {
+    locale: "en-GB",
+    eyebrow: "Feeding statistics",
+    title: (n) => n ? n + "'s statistics" : "Statistics",
+    back: "← Back to the feed log",
+    last24: "Last 24 hours", dailyAvg: "Daily average", thisMonth: "This month", perFeeding: "Per wet feeding",
+    gramsWet: "grams of wet food", overDays: (d) => d === 1 ? "today so far" : "over the last " + d + " days",
+    feedingsCount: (n) => n + (n === 1 ? " feeding" : " feedings"),
+    wetSnackSplit: (w, s) => w + " wet, " + s + " snacks",
+    avgPortion: "average portion size",
+    h2Daily: "Wet food per day", ledeDaily: "Last 30 days. The dashed line is the period average.",
+    h2Month: "By month", ledeMonth: "Total wet food and number of feedings.",
+    h2Who: "Who fed how often", ledeWho: "Feedings per person.",
+    h2Clock: "Time of day", ledeClock: "When feedings happen, across the whole record.",
+    allTime: "All time",
+    wet: "Wet food", snack: "Snacks",
+    noData: "Not enough data yet. Log a few feedings and come back.",
+    partial: "current month still in progress",
+    foot: (n, d) => "Based on " + n + " entries" + (d ? ", earliest " + d : "") + ". Averages count days since the first entry; days with no feedings count as zero.",
+    loadErr: "Could not load the data. Check the connection and reload."
+  },
+  de: {
+    locale: "de-CH",
+    eyebrow: "Fütterungsstatistik",
+    title: (n) => n ? "Statistik zu " + n : "Statistik",
+    back: "← Zurück zum Futtertagebuch",
+    last24: "Letzte 24 Stunden", dailyAvg: "Tagesdurchschnitt", thisMonth: "Dieser Monat", perFeeding: "Pro Nassfütterung",
+    gramsWet: "Gramm Nassfutter", overDays: (d) => d === 1 ? "heute bisher" : "über die letzten " + d + " Tage",
+    feedingsCount: (n) => n + (n === 1 ? " Fütterung" : " Fütterungen"),
+    wetSnackSplit: (w, s) => w + " Nass, " + s + " Leckerli",
+    avgPortion: "durchschnittliche Portion",
+    h2Daily: "Nassfutter pro Tag", ledeDaily: "Letzte 30 Tage. Die gestrichelte Linie ist der Durchschnitt.",
+    h2Month: "Nach Monat", ledeMonth: "Gesamtes Nassfutter und Anzahl Fütterungen.",
+    h2Who: "Wer wie oft gefüttert hat", ledeWho: "Fütterungen pro Person.",
+    h2Clock: "Tageszeit", ledeClock: "Wann gefüttert wird, über den gesamten Zeitraum.",
+    allTime: "Gesamter Zeitraum",
+    wet: "Nassfutter", snack: "Leckerli",
+    noData: "Noch zu wenig Daten. Trag ein paar Fütterungen ein und komm zurück.",
+    partial: "laufender Monat noch nicht abgeschlossen",
+    foot: (n, d) => "Basierend auf " + n + " Einträgen" + (d ? ", frühester " + d : "") + ". Durchschnitte zählen Tage ab dem ersten Eintrag; Tage ohne Fütterung zählen als null.",
+    loadErr: "Daten konnten nicht geladen werden. Verbindung prüfen und neu laden."
+  }
+};
+
+let lang = "en";
+try {
+  const saved = localStorage.getItem("feedlog.lang");
+  if (saved) lang = saved;
+  else if ((navigator.language || "").toLowerCase().startsWith("de")) lang = "de";
+} catch (_) {}
+if (!I18N[lang]) lang = "en";
+const t = (k, ...a) => { const v = I18N[lang][k]; return typeof v === "function" ? v(...a) : v; };
+
+const $ = (id) => document.getElementById(id);
+const pad = (n) => String(n).padStart(2, "0");
+const dayKey = (d) => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+const monthKey = (d) => d.getFullYear() + "-" + pad(d.getMonth() + 1);
+const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+/* ---------- data ---------- */
+let entries = [];
+let selectedMonth = "all";
+
+async function fetchEntries() {
+  if (CONFIG.supabaseUrl && CONFIG.supabaseAnonKey) {
+    const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm");
+    const sb = createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
+    const { data, error } = await sb.from("feedings").select("*").order("fed_at", { ascending: false }).limit(5000);
+    if (error) throw error;
+    return data;
+  }
+  // demo data
+  const out = [];
+  for (let i = 0; i < 160; i++) {
+    const d = new Date(Date.now() - i * 3600e3 * (7 + Math.random() * 6));
+    const snack = Math.random() < 0.25;
+    out.push({
+      id: String(i), fed_at: d.toISOString(),
+      person: ["Luisa", "Matt", "Other"][Math.random() < 0.45 ? 0 : Math.random() < 0.85 ? 1 : 2],
+      food_type: snack ? "snack" : "wet",
+      grams: snack ? null : [30, 45, 45, 60][Math.floor(Math.random() * 4)],
+      note: snack ? "Dental stick" : null
+    });
+  }
+  return out;
+}
+
+/* ---------- chart helpers ---------- */
+function dailySeries(days) {
+  const out = [];
+  const now = new Date();
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    out.push({ date: d, key: dayKey(d), grams: 0, count: 0 });
+  }
+  const idx = new Map(out.map(o => [o.key, o]));
+  entries.forEach(e => {
+    const o = idx.get(dayKey(new Date(e.fed_at)));
+    if (!o) return;
+    o.count++;
+    if (e.food_type === "wet") o.grams += e.grams || 0;
+  });
+  return out;
+}
+
+function barChart(series, divisor) {
+  const W = 520, H = 150, padL = 26, padB = 16;
+  const max = Math.max(60, ...series.map(s => s.grams));
+  const top = Math.ceil(max / 20) * 20;
+  const iw = W - padL, ih = H - padB;
+  const bw = iw / series.length;
+  const avg = series.reduce((s, x) => s + x.grams, 0) / Math.max(1, divisor || series.length);
+  const y = (v) => ih - (v / top) * ih;
+
+  let g = "";
+  [0, top / 2, top].forEach(v => {
+    g += `<line class="gridline" x1="${padL}" y1="${y(v)}" x2="${W}" y2="${y(v)}"/>
+          <text class="axis" x="0" y="${y(v) + 3}">${Math.round(v)}</text>`;
+  });
+  series.forEach((s, i) => {
+    const h = Math.max(s.grams > 0 ? 2 : 0, ih - y(s.grams));
+    g += `<rect x="${padL + i * bw + bw * 0.14}" y="${ih - h}" width="${bw * 0.72}" height="${h}"
+           rx="1.5" fill="var(--wet)" opacity="${s.grams ? 1 : 0}"><title>${s.key}: ${s.grams} g</title></rect>`;
+  });
+  g += `<line class="avgline" x1="${padL}" y1="${y(avg)}" x2="${W}" y2="${y(avg)}"/>`;
+  series.forEach((s, i) => {
+    if (s.date.getDate() === 1 || i === 0 || i === series.length - 1) {
+      const lbl = s.date.toLocaleDateString(t("locale"), { day: "numeric", month: "short" });
+      const anchor = i === series.length - 1 ? "end" : i === 0 ? "start" : "middle";
+      g += `<text class="axis" x="${padL + i * bw + bw / 2}" y="${H - 2}" text-anchor="${anchor}">${esc(lbl)}</text>`;
+    }
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">${g}</svg>`;
+}
+
+function clockChart() {
+  const buckets = Array.from({ length: 24 }, () => ({ wet: 0, snack: 0 }));
+  entries.forEach(e => {
+    const h = new Date(e.fed_at).getHours();
+    buckets[h][e.food_type === "wet" ? "wet" : "snack"]++;
+  });
+  const max = Math.max(1, ...buckets.map(b => b.wet + b.snack));
+  const W = 520, H = 120, padB = 16, ih = H - padB, bw = W / 24;
+  let g = "";
+  buckets.forEach((b, h) => {
+    const tot = b.wet + b.snack;
+    const th = (tot / max) * ih;
+    const sh = (b.snack / max) * ih;
+    const x = h * bw + bw * 0.16, w = bw * 0.68;
+    if (tot) {
+      g += `<rect x="${x}" y="${ih - th}" width="${w}" height="${th - sh}" rx="1.5" fill="var(--wet)"/>`;
+      if (sh) g += `<rect x="${x}" y="${ih - sh}" width="${w}" height="${sh}" rx="1.5" fill="var(--snack)"/>`;
+      g += `<rect x="${x}" y="0" width="${w}" height="${ih}" fill="transparent"><title>${pad(h)}:00 — ${tot}</title></rect>`;
+    }
+  });
+  [0, 6, 12, 18].forEach(h => {
+    g += `<text class="axis" x="${h * bw + bw / 2}" y="${H - 2}" text-anchor="middle">${pad(h)}</text>`;
+  });
+  g += `<text class="axis" x="${W}" y="${H - 2}" text-anchor="end">24</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">${g}</svg>`;
+}
+
+/* ---------- render ---------- */
+function render() {
+  document.documentElement.lang = lang;
+  $("eyebrow").textContent = t("eyebrow");
+  $("title").textContent = t("title", CONFIG.catName);
+  $("back").textContent = t("back");
+  [...$("lang").children].forEach(b => b.setAttribute("aria-pressed", String(b.dataset.l === lang)));
+
+  const c = $("content");
+  if (!entries.length) { c.innerHTML = `<div class="empty">${esc(t("noData"))}</div>`; $("foot").textContent = ""; return; }
+
+  const now = Date.now();
+  const wet = entries.filter(e => e.food_type === "wet");
+
+  // headline numbers
+  const g24 = wet.filter(e => now - new Date(e.fed_at) < 864e5).reduce((s, e) => s + (e.grams || 0), 0);
+  const d30 = dailySeries(30);
+  // Average only over days the log has actually existed, not the full 30-day window.
+  const earliestMs = entries.reduce((a, e) => Math.min(a, new Date(e.fed_at).getTime()), Infinity);
+  const startOfToday = new Date(); startOfToday.setHours(0, 0, 0, 0);
+  const startOfFirst = new Date(earliestMs); startOfFirst.setHours(0, 0, 0, 0);
+  const daysOnRecord = Math.min(30, Math.round((startOfToday - startOfFirst) / 864e5) + 1);
+  const avg30 = Math.round(d30.reduce((s, x) => s + x.grams, 0) / daysOnRecord);
+  const mKey = monthKey(new Date());
+  const thisMonth = entries.filter(e => monthKey(new Date(e.fed_at)) === mKey);
+  const tmWet = thisMonth.filter(e => e.food_type === "wet").length;
+  const avgPortion = wet.length ? Math.round(wet.reduce((s, e) => s + (e.grams || 0), 0) / wet.length) : 0;
+
+  // months
+  const months = new Map();
+  entries.forEach(e => {
+    const k = monthKey(new Date(e.fed_at));
+    if (!months.has(k)) months.set(k, { grams: 0, wet: 0, snack: 0, people: {} });
+    const m = months.get(k);
+    if (e.food_type === "wet") { m.grams += e.grams || 0; m.wet++; } else m.snack++;
+    m.people[e.person] = m.people[e.person] || { wet: 0, snack: 0 };
+    m.people[e.person][e.food_type === "wet" ? "wet" : "snack"]++;
+  });
+  const monthKeys = [...months.keys()].sort().reverse();
+  const maxMonthG = Math.max(1, ...[...months.values()].map(m => m.grams));
+  const monthName = (k) => {
+    const [y, m] = k.split("-").map(Number);
+    return new Date(y, m - 1, 1).toLocaleDateString(t("locale"), { month: "short", year: "2-digit" });
+  };
+
+  // person scope
+  const scope = selectedMonth === "all" ? entries : entries.filter(e => monthKey(new Date(e.fed_at)) === selectedMonth);
+  const byPerson = {};
+  scope.forEach(e => {
+    byPerson[e.person] = byPerson[e.person] || { wet: 0, snack: 0 };
+    byPerson[e.person][e.food_type === "wet" ? "wet" : "snack"]++;
+  });
+  const maxPerson = Math.max(1, ...Object.values(byPerson).map(p => p.wet + p.snack));
+  const people = Object.entries(byPerson).sort((a, b) => (b[1].wet + b[1].snack) - (a[1].wet + a[1].snack));
+
+  c.innerHTML = `
+    <div class="tiles">
+      <div class="tile">
+        <div class="k">${esc(t("last24"))}</div>
+        <div class="v">${g24}<small>g</small></div>
+        <div class="sub">${esc(t("gramsWet"))}</div>
+      </div>
+      <div class="tile">
+        <div class="k">${esc(t("dailyAvg"))}</div>
+        <div class="v">${avg30}<small>g</small></div>
+        <div class="sub">${esc(t("overDays", daysOnRecord))}</div>
+      </div>
+      <div class="tile">
+        <div class="k">${esc(t("thisMonth"))}</div>
+        <div class="v">${thisMonth.length}</div>
+        <div class="sub">${esc(t("wetSnackSplit", tmWet, thisMonth.length - tmWet))}</div>
+      </div>
+      <div class="tile">
+        <div class="k">${esc(t("perFeeding"))}</div>
+        <div class="v">${avgPortion}<small>g</small></div>
+        <div class="sub">${esc(t("avgPortion"))}</div>
+      </div>
+    </div>
+
+    <h2>${esc(t("h2Daily"))}</h2>
+    <p class="lede">${esc(t("ledeDaily"))}</p>
+    <div class="panel">${barChart(d30, daysOnRecord)}</div>
+
+    <h2>${esc(t("h2Month"))}</h2>
+    <p class="lede">${esc(t("ledeMonth"))}</p>
+    <div class="panel">
+      ${monthKeys.map(k => {
+        const m = months.get(k);
+        return `<div class="mrow">
+          <span class="mlabel">${esc(monthName(k))}</span>
+          <span><span class="mbar" style="display:block;width:${Math.max(2, m.grams / maxMonthG * 100)}%"></span>
+            <span class="mnote">${esc(t("feedingsCount", m.wet + m.snack))}${k === mKey ? " · " + esc(t("partial")) : ""}</span></span>
+          <span class="mval">${m.grams} g</span>
+        </div>`;
+      }).join("")}
+    </div>
+
+    <h2>${esc(t("h2Who"))}</h2>
+    <p class="lede">${esc(t("ledeWho"))}</p>
+    <div class="selwrap">
+      <select id="monthSel">
+        <option value="all"${selectedMonth === "all" ? " selected" : ""}>${esc(t("allTime"))}</option>
+        ${monthKeys.map(k => `<option value="${k}"${selectedMonth === k ? " selected" : ""}>${esc(monthName(k))}</option>`).join("")}
+      </select>
+    </div>
+    <div class="panel">
+      ${people.length ? people.map(([name, p]) => {
+        const tot = p.wet + p.snack;
+        return `<div class="prow">
+          <span class="pname">${esc(name)}</span>
+          <span class="ptrack" style="width:${Math.max(4, tot / maxPerson * 100)}%">
+            <span class="pseg wet" style="width:${p.wet / tot * 100}%"></span>
+            <span class="pseg snack" style="width:${p.snack / tot * 100}%"></span>
+          </span>
+          <span class="pval">${tot} · ${p.wet}/${p.snack}</span>
+        </div>`;
+      }).join("") : `<div class="mnote">${esc(t("noData"))}</div>`}
+      <div class="legend">
+        <span><i style="background:var(--wet)"></i>${esc(t("wet"))}</span>
+        <span><i style="background:var(--snack)"></i>${esc(t("snack"))}</span>
+      </div>
+    </div>
+
+    <h2>${esc(t("h2Clock"))}</h2>
+    <p class="lede">${esc(t("ledeClock"))}</p>
+    <div class="panel">${clockChart()}
+      <div class="legend">
+        <span><i style="background:var(--wet)"></i>${esc(t("wet"))}</span>
+        <span><i style="background:var(--snack)"></i>${esc(t("snack"))}</span>
+      </div>
+    </div>`;
+
+  const sel = $("monthSel");
+  if (sel) sel.onchange = () => { selectedMonth = sel.value; render(); };
+
+  const earliest = entries.reduce((a, e) => e.fed_at < a ? e.fed_at : a, entries[0].fed_at);
+  $("foot").textContent = t("foot", entries.length, new Date(earliest).toLocaleDateString(t("locale")));
+}
+
+$("lang").onclick = (ev) => {
+  const b = ev.target.closest("button"); if (!b) return;
+  lang = b.dataset.l;
+  try { localStorage.setItem("feedlog.lang", lang); } catch (_) {}
+  render();
+};
+
+try {
+  entries = await fetchEntries();
+  render();
+} catch (e) {
+  $("content").innerHTML = `<div class="empty">${esc(t("loadErr"))}</div>`;
+}
+</script>
+</body>
+</html>
