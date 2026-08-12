@@ -54,6 +54,13 @@
   :focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:4px}
 
   /* ---------- masthead ---------- */
+  .masthead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+  .lang{display:flex;gap:2px;border:1px solid var(--line);border-radius:999px;padding:2px;background:#fff}
+  .lang button{
+    border:none;background:none;border-radius:999px;padding:4px 10px;
+    font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.08em;color:var(--muted)
+  }
+  .lang button[aria-pressed="true"]{background:var(--ink);color:#fff}
   .eyebrow{
     font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;
     text-transform:uppercase;color:var(--muted);margin:0 0 6px
@@ -209,7 +216,13 @@
 <body>
 <div class="wrap">
 
-  <p class="eyebrow" id="eyebrow">Shared feeding record</p>
+  <div class="masthead">
+    <p class="eyebrow" id="eyebrow">Shared feeding record</p>
+    <div class="lang" id="lang">
+      <button type="button" data-l="en" aria-pressed="true">EN</button>
+      <button type="button" data-l="de" aria-pressed="false">DE</button>
+    </div>
+  </div>
   <h1 id="title">Feed log</h1>
 
   <p class="status" id="status"></p>
@@ -227,12 +240,12 @@
   <!-- ENTRY -->
   <div class="card">
     <div class="field">
-      <label class="lbl">Who is feeding</label>
+      <label class="lbl" id="lblPerson">Who is feeding</label>
       <div class="seg" id="segPerson"></div>
     </div>
 
     <div class="field">
-      <label class="lbl">What</label>
+      <label class="lbl" id="lblType">What</label>
       <div class="seg type" id="segType">
         <button type="button" data-v="wet" aria-pressed="true">Wet food</button>
         <button type="button" data-v="snack" aria-pressed="false">Snack</button>
@@ -258,20 +271,20 @@
 
   <!-- HISTORY -->
   <div class="section-head">
-    <h2>Earlier feedings</h2>
+    <h2 id="histTitle">Earlier feedings</h2>
     <span class="count" id="count"></span>
   </div>
 
   <div class="filters">
     <div class="full"><input id="fQ" type="text" placeholder="Search snacks, notes, anything" /></div>
-    <div class="selwrap"><select id="fPerson"><option value="">Anyone</option></select></div>
+    <div class="selwrap"><select id="fPerson"><option value="" id="optAnyone">Anyone</option></select></div>
     <div class="selwrap"><select id="fType">
-      <option value="">Any food</option>
-      <option value="wet">Wet food</option>
-      <option value="snack">Snack</option>
+      <option value="" id="optAnyFood">Any food</option>
+      <option value="wet" id="optWet">Wet food</option>
+      <option value="snack" id="optSnack">Snack</option>
     </select></div>
     <div class="full datecell">
-      <label class="lbl" for="fDate">Filter by day</label>
+      <label class="lbl" id="lblDate" for="fDate">Filter by day</label>
       <input id="fDate" type="date" />
     </div>
   </div>
@@ -283,6 +296,99 @@
 <script type="module">
 /* Settings live in the SETTINGS block at the very top of this file. */
 const CONFIG = window.CAT_CONFIG;
+
+/* ---------- languages ---------- */
+const I18N = {
+  en: {
+    locale: "en-GB",
+    eyebrow: "Shared feeding record",
+    title: (n) => n ? n + "'s feed log" : "Feed log",
+    lastFed: (a) => "Last fed " + a,
+    by: "by",
+    nothingYet: "No feedings recorded yet.",
+    lblPerson: "Who is feeding",
+    lblType: "What",
+    wet: "Wet food", snack: "Snack",
+    tagWet: "wet", tagSnack: "snack",
+    amount: "Amount", whatWasIt: "What was it",
+    notePlaceholder: "Two dental sticks",
+    submit: "Log feeding",
+    errPerson: "Pick who is feeding.",
+    errGrams: "Enter the amount in grams.",
+    errNote: "Describe the snack in a few words.",
+    errSave: "Could not save that. Check the connection and try again.",
+    histTitle: "Earlier feedings",
+    searchPlaceholder: "Search snacks, notes, anything",
+    anyone: "Anyone", anyFood: "Any food",
+    lblDate: "Filter by day",
+    clear: "Clear filters",
+    entries: (n) => n + (n === 1 ? " entry" : " entries"),
+    ofTotal: (a, b) => a + " of " + b,
+    today: "Today", yesterday: "Yesterday",
+    noMatch: "Nothing matches those filters.",
+    noneLogged: "No feedings logged yet. The first one goes above.",
+    wetFoodOf: (g) => g + " g wet food",
+    justNow: "just now",
+    minsAgo: (m) => m + " min ago",
+    hrsAgo: (h, m) => h + "h " + m + "m ago",
+    yesterdayAgo: "yesterday",
+    daysAgo: (d) => d + " days ago",
+    grams: "Grams", whatSnack: "What was the snack",
+    save: "Save changes", cancel: "Cancel",
+    del: "Delete", confirmDel: "Tap to confirm"
+  },
+  de: {
+    locale: "de-CH",
+    eyebrow: "Gemeinsames Fütterungsprotokoll",
+    title: (n) => n ? n + "s Futtertagebuch" : "Futtertagebuch",
+    lastFed: (a) => "Zuletzt gefüttert " + a,
+    by: "von",
+    nothingYet: "Noch keine Fütterungen erfasst.",
+    lblPerson: "Wer füttert",
+    lblType: "Was",
+    wet: "Nassfutter", snack: "Leckerli",
+    tagWet: "nass", tagSnack: "leckerli",
+    amount: "Menge", whatWasIt: "Was war es",
+    notePlaceholder: "Zwei Dentalsticks",
+    submit: "Fütterung eintragen",
+    errPerson: "Wähle aus, wer füttert.",
+    errGrams: "Gib die Menge in Gramm ein.",
+    errNote: "Beschreibe das Leckerli kurz.",
+    errSave: "Konnte nicht gespeichert werden. Prüfe die Verbindung und versuch es nochmal.",
+    histTitle: "Frühere Fütterungen",
+    searchPlaceholder: "Leckerli, Notizen, alles durchsuchen",
+    anyone: "Alle", anyFood: "Alles Futter",
+    lblDate: "Nach Tag filtern",
+    clear: "Filter zurücksetzen",
+    entries: (n) => n + (n === 1 ? " Eintrag" : " Einträge"),
+    ofTotal: (a, b) => a + " von " + b,
+    today: "Heute", yesterday: "Gestern",
+    noMatch: "Keine Einträge für diese Filter.",
+    noneLogged: "Noch keine Fütterungen. Die erste trägst du oben ein.",
+    wetFoodOf: (g) => g + " g Nassfutter",
+    justNow: "gerade eben",
+    minsAgo: (m) => "vor " + m + " Min.",
+    hrsAgo: (h, m) => "vor " + h + " Std. " + m + " Min.",
+    yesterdayAgo: "gestern",
+    daysAgo: (d) => "vor " + d + " Tagen",
+    grams: "Gramm", whatSnack: "Was war das Leckerli",
+    save: "Speichern", cancel: "Abbrechen",
+    del: "Löschen", confirmDel: "Zum Bestätigen tippen"
+  }
+};
+
+let lang = "en";
+try {
+  const saved = localStorage.getItem("feedlog.lang");
+  if (saved) lang = saved;
+  else if ((navigator.language || "").toLowerCase().startsWith("de")) lang = "de";
+} catch (_) {}
+if (!I18N[lang]) lang = "en";
+
+const t = (k, ...a) => {
+  const v = I18N[lang][k];
+  return typeof v === "function" ? v(...a) : v;
+};
 
 /* ---------- data layer ---------- */
 const useSupabase = Boolean(CONFIG.supabaseUrl && CONFIG.supabaseAnonKey);
@@ -342,10 +448,36 @@ const filters = { q: "", person: "", type: "", date: "" };
 
 const $ = (id) => document.getElementById(id);
 
-if (CONFIG.catName) {
-  $("title").textContent = CONFIG.catName + "'s feed log";
-  $("eyebrow").textContent = "Shared feeding record";
+function applyStatic() {
+  document.documentElement.lang = lang;
+  $("eyebrow").textContent = t("eyebrow");
+  $("title").textContent = t("title", CONFIG.catName);
+  $("lblPerson").textContent = t("lblPerson");
+  $("lblType").textContent = t("lblType");
+  $("segType").querySelector('[data-v="wet"]').textContent = t("wet");
+  $("segType").querySelector('[data-v="snack"]').textContent = t("snack");
+  $("amountLabel").textContent = foodType === "wet" ? t("amount") : t("whatWasIt");
+  $("note").placeholder = t("notePlaceholder");
+  $("submit").textContent = t("submit");
+  $("histTitle").textContent = t("histTitle");
+  $("fQ").placeholder = t("searchPlaceholder");
+  $("optAnyone").textContent = t("anyone");
+  $("optAnyFood").textContent = t("anyFood");
+  $("optWet").textContent = t("wet");
+  $("optSnack").textContent = t("snack");
+  $("lblDate").textContent = t("lblDate");
+  $("clearFilters").textContent = t("clear");
+  [...$("lang").children].forEach(b => b.setAttribute("aria-pressed", String(b.dataset.l === lang)));
 }
+
+$("lang").onclick = (ev) => {
+  const b = ev.target.closest("button"); if (!b) return;
+  lang = b.dataset.l;
+  try { localStorage.setItem("feedlog.lang", lang); } catch (_) {}
+  $("formErr").textContent = "";
+  applyStatic();
+  render();
+};
 
 /* ---------- helpers ---------- */
 const pad = (n) => String(n).padStart(2, "0");
@@ -355,23 +487,23 @@ const dayKey = (iso) => { const d = new Date(iso); return d.getFullYear() + "-" 
 function dayLabel(key) {
   const today = dayKey(new Date().toISOString());
   const yest = dayKey(new Date(Date.now() - 864e5).toISOString());
-  if (key === today) return "Today";
-  if (key === yest) return "Yesterday";
+  if (key === today) return t("today");
+  if (key === yest) return t("yesterday");
   const [y, m, d] = key.split("-").map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
+  return new Date(y, m - 1, d).toLocaleDateString(t("locale"), { weekday: "long", day: "numeric", month: "long" });
 }
 
 function ago(iso) {
   const mins = Math.max(0, Math.round((Date.now() - new Date(iso)) / 60000));
-  if (mins < 1) return "just now";
-  if (mins < 60) return mins + " min ago";
+  if (mins < 1) return t("justNow");
+  if (mins < 60) return t("minsAgo", mins);
   const hrs = Math.floor(mins / 60), rem = mins % 60;
-  if (hrs < 24) return hrs + "h " + rem + "m ago";
+  if (hrs < 24) return t("hrsAgo", hrs, rem);
   const days = Math.floor(hrs / 24);
-  return days === 1 ? "yesterday" : days + " days ago";
+  return days === 1 ? t("yesterdayAgo") : t("daysAgo", days);
 }
 
-const describe = (e) => e.food_type === "wet" ? e.grams + " g wet food" : (e.note || "snack");
+const describe = (e) => e.food_type === "wet" ? t("wetFoodOf", e.grams) : (e.note || t("snack"));
 
 function toLocalInput(iso) {
   const d = new Date(iso);
@@ -395,7 +527,7 @@ $("segType").onclick = (ev) => {
   foodType = b.dataset.v;
   [...$("segType").children].forEach(x => x.setAttribute("aria-pressed", String(x.dataset.v === foodType)));
   const wet = foodType === "wet";
-  $("amountLabel").textContent = wet ? "Amount" : "What was it";
+  $("amountLabel").textContent = wet ? t("amount") : t("whatWasIt");
   $("amount").hidden = !wet; $("suffix").hidden = !wet; $("chips").hidden = !wet;
   $("note").hidden = wet;
   $("formErr").textContent = "";
@@ -408,15 +540,15 @@ $("chips").onclick = (ev) => {
 
 $("submit").onclick = async () => {
   const err = $("formErr");
-  if (!person) { err.textContent = "Pick who is feeding."; return; }
+  if (!person) { err.textContent = t("errPerson"); return; }
   const rec = { person, food_type: foodType, fed_at: new Date().toISOString(), grams: null, note: null };
   if (foodType === "wet") {
     const g = parseInt($("amount").value, 10);
-    if (!g || g <= 0) { err.textContent = "Enter the amount in grams."; return; }
+    if (!g || g <= 0) { err.textContent = t("errGrams"); return; }
     rec.grams = g;
   } else {
     const n = $("note").value.trim();
-    if (!n) { err.textContent = "Describe the snack in a few words."; return; }
+    if (!n) { err.textContent = t("errNote"); return; }
     rec.note = n;
   }
   err.textContent = "";
@@ -428,7 +560,7 @@ $("submit").onclick = async () => {
     await load();
     setTimeout(() => { freshId = null; }, 1600);
   } catch (e) {
-    err.textContent = "Could not save that. Check the connection and try again.";
+    err.textContent = t("errSave");
   } finally {
     $("submit").disabled = false;
   }
@@ -465,8 +597,8 @@ const matches = (e) => {
 function renderStatus() {
   const last = entries[0];
   $("status").innerHTML = last
-    ? `<b>Last fed ${ago(last.fed_at)}</b> <span class="detail">— ${describe(last)}, by ${last.person}</span>`
-    : `<span class="detail">No feedings recorded yet.</span>`;
+    ? `<b>${esc(t("lastFed", ago(last.fed_at)))}</b> <span class="detail">— ${esc(describe(last))}, ${t("by")} ${esc(last.person)}</span>`
+    : `<span class="detail">${esc(t("nothingYet"))}</span>`;
 
   const track = $("track");
   track.innerHTML = "";
@@ -498,8 +630,8 @@ function render() {
   const active = filters.q || filters.person || filters.type || filters.date;
   $("clearFilters").hidden = !active;
   $("count").textContent = active
-    ? shown.length + " of " + entries.length
-    : entries.length + (entries.length === 1 ? " entry" : " entries");
+    ? t("ofTotal", shown.length, entries.length)
+    : t("entries", entries.length);
 
   const list = $("list");
   list.innerHTML = "";
@@ -507,7 +639,7 @@ function render() {
   if (!shown.length) {
     const p = document.createElement("div");
     p.className = "empty";
-    p.textContent = active ? "Nothing matches those filters." : "No feedings logged yet. The first one goes above.";
+    p.textContent = active ? t("noMatch") : t("noneLogged");
     list.appendChild(p);
     return;
   }
@@ -543,9 +675,9 @@ function entryEl(e) {
     <span class="time">${timeOf(e.fed_at)}</span>
     <span>
       <span class="who">${esc(e.person)}</span>
-      <span class="what">${esc(e.food_type === "wet" ? e.grams + " g wet food" : (e.note || "Snack"))}</span>
+      <span class="what">${esc(e.food_type === "wet" ? t("wetFoodOf", e.grams) : (e.note || t("snack")))}</span>
     </span>
-    <span class="tag ${e.food_type}">${e.food_type === "wet" ? "wet" : "snack"}</span>`;
+    <span class="tag ${e.food_type}">${e.food_type === "wet" ? t("tagWet") : t("tagSnack")}</span>`;
   row.querySelector(".what").style.display = "block";
   row.onclick = () => { editingId = editingId === e.id ? null : e.id; armedDeleteId = null; render(); };
   wrap.appendChild(row);
@@ -562,19 +694,19 @@ function editorEl(e) {
     <div class="row" style="margin-bottom:8px">
       <div class="selwrap"><select data-f="person">${CONFIG.people.map(p => `<option ${p === e.person ? "selected" : ""}>${esc(p)}</option>`).join("")}</select></div>
       <div class="selwrap"><select data-f="type">
-        <option value="wet" ${isWet ? "selected" : ""}>Wet food</option>
-        <option value="snack" ${!isWet ? "selected" : ""}>Snack</option>
+        <option value="wet" ${isWet ? "selected" : ""}>${esc(t("wet"))}</option>
+        <option value="snack" ${!isWet ? "selected" : ""}>${esc(t("snack"))}</option>
       </select></div>
     </div>
     <div style="margin-bottom:8px">
-      <input data-f="grams" type="number" min="1" placeholder="Grams" value="${isWet ? e.grams ?? "" : ""}" ${isWet ? "" : "hidden"} />
-      <input data-f="note" type="text" placeholder="What was the snack" value="${isWet ? "" : esc(e.note || "")}" ${isWet ? "hidden" : ""} />
+      <input data-f="grams" type="number" min="1" placeholder="${esc(t("grams"))}" value="${isWet ? e.grams ?? "" : ""}" ${isWet ? "" : "hidden"} />
+      <input data-f="note" type="text" placeholder="${esc(t("whatSnack"))}" value="${isWet ? "" : esc(e.note || "")}" ${isWet ? "hidden" : ""} />
     </div>
     <input data-f="fed_at" type="datetime-local" value="${toLocalInput(e.fed_at)}" />
     <div class="actions">
-      <button class="btn save">Save changes</button>
-      <button class="btn cancel">Cancel</button>
-      <button class="btn del">${armedDeleteId === e.id ? "Tap to confirm" : "Delete"}</button>
+      <button class="btn save">${esc(t("save"))}</button>
+      <button class="btn cancel">${esc(t("cancel"))}</button>
+      <button class="btn del">${armedDeleteId === e.id ? esc(t("confirmDel")) : esc(t("del"))}</button>
     </div>`;
   if (armedDeleteId === e.id) ed.querySelector(".del").classList.add("armed");
 
@@ -615,6 +747,7 @@ async function load() {
   entries = await db.list();
   render();
 }
+applyStatic();
 await load();
 setInterval(renderStatus, 60000);
 </script>
