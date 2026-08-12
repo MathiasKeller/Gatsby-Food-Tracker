@@ -200,6 +200,11 @@
   .btn.del{margin-left:auto;color:var(--danger);border-color:#E7CFCF}
   .btn.del.armed{background:var(--danger);border-color:var(--danger);color:#fff}
 
+  .statslink{
+    display:inline-block;margin:-4px 0 16px;font-size:13.5px;color:var(--muted);
+    text-decoration:none;border-bottom:1px solid var(--line);padding-bottom:1px
+  }
+  .statslink:hover{color:var(--ink)}
   .empty{
     text-align:center;color:var(--muted);padding:34px 10px;font-size:14px;
     border:1px dashed var(--line);border-radius:var(--radius);margin-top:14px
@@ -224,6 +229,7 @@
     </div>
   </div>
   <h1 id="title">Feed log</h1>
+  <a class="statslink" href="./stats.html" id="statsLink">Statistics →</a>
 
   <p class="status" id="status"></p>
 
@@ -335,7 +341,8 @@ const I18N = {
     daysAgo: (d) => d + " days ago",
     grams: "Grams", whatSnack: "What was the snack",
     save: "Save changes", cancel: "Cancel",
-    del: "Delete", confirmDel: "Tap to confirm"
+    del: "Delete", confirmDel: "Tap to confirm",
+    statsLink: "Statistics →"
   },
   de: {
     locale: "de-CH",
@@ -373,7 +380,8 @@ const I18N = {
     daysAgo: (d) => "vor " + d + " Tagen",
     grams: "Gramm", whatSnack: "Was war das Leckerli",
     save: "Speichern", cancel: "Abbrechen",
-    del: "Löschen", confirmDel: "Zum Bestätigen tippen"
+    del: "Löschen", confirmDel: "Zum Bestätigen tippen",
+    statsLink: "Statistik →"
   }
 };
 
@@ -467,6 +475,7 @@ function applyStatic() {
   $("optSnack").textContent = t("snack");
   $("lblDate").textContent = t("lblDate");
   $("clearFilters").textContent = t("clear");
+  $("statsLink").textContent = t("statsLink");
   [...$("lang").children].forEach(b => b.setAttribute("aria-pressed", String(b.dataset.l === lang)));
 }
 
